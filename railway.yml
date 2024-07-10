@@ -1,0 +1,11 @@
+version: 0.2
+services:
+  web:
+    builder: railway/app-builder-npm
+    buildPath: .
+    env:
+      NODE_ENV: production
+    envFile: .env
+    command: npm run start:prod
+    ports:
+      - 3000:3000
