@@ -30,4 +30,16 @@ export class Visita extends Model<Visita> {
         allowNull: false,
     })
     browser: string;
+
+    @Column({
+        type: DataType.STRING,
+        allowNull: false,
+    })
+    hostname: string;
+
+    @Column({
+        type: DataType.JSON,
+        allowNull: false,
+    })
+    device: object;
 }

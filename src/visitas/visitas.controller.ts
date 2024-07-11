@@ -2,10 +2,16 @@ import { Controller, Get, Post, Req, Body, HttpException, HttpStatus } from '@ne
 import { Request } from 'express';
 import { VisitasService } from './visitas.service';
 import { Visita } from './visita.model';
+import { UserAgentService } from './user_agent.service';
+import * as dns from 'dns';
 
 @Controller('visitas')
 export class VisitasController {
-    constructor(private readonly visitasService: VisitasService) { }
+    constructor(
+        private readonly visitasService: VisitasService,
+        private readonly userAgentService: UserAgentService
+    ) { }
+
 
     @Get()
     async findAll(): Promise<Visita[]> {
@@ -19,13 +25,26 @@ export class VisitasController {
         const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress || request.socket.remoteAddress;
         visita.ip = Array.isArray(ip) ? ip[0] : ip;
 
-        visita.browser = request.headers['user-agent'] || '';
+        const userAgent = request.headers['user-agent'] || 'Browser unknown';
+        visita.browser = userAgent
 
-        if (!visita.ip || !visita.browser) {
-            throw new HttpException('No se pudo capturar la IP o el navegador del cliente', HttpStatus.BAD_REQUEST);
+        let hostname = 'Hostname unknown';
+        if (typeof ip === 'string') {
+            hostname = await new Promise<string>((resolve, reject) => {
+                dns.reverse(ip, (err, hostnames) => {
+                    if (err) {
+                        resolve('Unknown hostname: ' + hostnames);
+                    } else {
+                        resolve(hostnames[0] || 'Unknown hostname');
+                    }
+                });
+            });
         }
 
-        visita.timestamp = new Date(); // Asignar el timestamp por defecto
+        visita.hostname = hostname;
+        visita.device = this.userAgentService.getDeviceInfo(userAgent);
+
+        visita.timestamp = new Date();
 
         return await this.visitasService.create(visita);
     }
