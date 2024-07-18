@@ -30,15 +30,21 @@ export class VisitasController {
 
         let hostname = 'Hostname unknown';
         if (typeof ip === 'string') {
-            hostname = await new Promise<string>((resolve, reject) => {
-                dns.reverse(ip, (err, hostnames) => {
-                    if (err) {
-                        resolve('Unknown hostname: ' + hostnames);
-                    } else {
-                        resolve(hostnames[0] || 'Unknown hostname');
-                    }
+            try {
+                hostname = await new Promise<string>((resolve, reject) => {
+                    dns.reverse(ip, (err, hostnames) => {
+                        if (err) {
+                            console.log(err);
+
+                            resolve('Unknown hostname: ' + hostnames);
+                        } else {
+                            resolve(hostnames[0] || 'Unknown hostname');
+                        }
+                    });
                 });
-            });
+            } catch (err) {
+                hostname = 'Unknown hostname'
+            }
         }
 
         visita.hostname = hostname;
