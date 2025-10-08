@@ -12,7 +12,6 @@ export class VisitasController {
         private readonly userAgentService: UserAgentService
     ) { }
 
-
     @Get()
     async findAll(): Promise<Visita[]> {
         return this.visitasService.findAll();
